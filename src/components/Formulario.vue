@@ -1,41 +1,108 @@
 <template>
-    <form @submit.prevent="registrarProyecto" >
-        <div class="mb-3">
-          <label class="form-label">Proyecto</label>
-          <input type="text" class="form-control" required />
-          
+    
+    <div class="row">
+        <div class="col-12 mb-4">
+            <progress-bar :porcentaje="porcentaje" />
         </div>
 
-        <div class="mb-3">
-          <label for="exampleInputPassword1" class="form-label">Actividad</label>
-          <select class="form-select" required>
-            <option disabled value="">Seleccione una actividad</option>
-            <option disabled selected value="" >Aplicaciones Web con Vue.js</option>
-            <option>Backend Service con NOde.js</option>
-            <option>App Movil con React Native</option>
-          </select>
-        </div>
 
-        <div class="mb-3">
-            <label for="exampleInputPassword1" class="form-check-label">Urgente</label>
-            <input type="checkbox" class="form-check-input" >
-          </div>
+        <div class="col-12 col-md-5">
+        
+            <form @submit.prevent="resgistrarProyecto">
+
+                <div class="mb-3">
+                    <label class="form-label">Proyecto</label>
+                    <input v-model.trim="proyecto" type="text" class="form-control" required/>
+                </div>
+        
+                <div class="mb-3">
+                    <label class="form-label">Actividad</label>
+                    <select v-model.trim="tipo" class="form-select" required>
+                        <option disabled selected value=""> Selecciona un tipo de actividad</option>
+                        <option >Aplicaciones web con Vue.js</option>
+                        <option >Backend Services con Node.js</option>
+                        <option >App móvil con React Native</option>
+        
+                    </select>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-check-label">Urgente</label>
+                    <input v-model="urgente" type="checkbox" class="form-check-input">
+                </div>
+        
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </form>
 
         
-        <button type="submit" class="btn btn-primary">Guardar</button>
-      </form>
+        </div>
+        
+        <div class="col-12 col-md-7">
+            <total-proyectos :numeroProyectos="numeroProyectos" :proyectos="proyectos" :cambiarEstado="cambiarEstado" :limpiarData="limpiarData"/>
 
+        </div>
+    </div>
 </template>
 
 <script>
-    export default{
-        data:()=>({
-
-        }),
-        methods:{
-            registrarProyecto(){
-            console.log("Proyecto registrado...");
+    import ProgressBar from './ProgressBar.vue';
+    import TotalProyectos from './TotalProyectos.vue';
+        export default  {
+            data: () => ({
+                proyecto: "",
+                tipo: "",
+                urgente: false,
+                proyectos: [],
+                numeroProyectos: 0,
+            }),
+            methods: {
+                resgistrarProyecto() {
+                    const proyecto = {
+                        proyecto: this.proyecto,
+                        tipo: this.tipo,
+                        urgente: this.urgente,
+                        completado: false,
+                    };
+                    this.proyectos.push(proyecto);
+        
+                    this.saveData();
+        
+                    this.proyecto = "";
+                    this.tipo = "";
+                    this.urgente = false;
+                },
+                cambiarEstado(proyecto, campo) {
+                    // this.proyectos[id].urgente = !this.proyectos[id].urgente;
+                    //console.log(proyecto);
+                    proyecto[campo] = !proyecto[campo];
+                    this.saveData();
+                    
+                },
+                saveData() {
+                    localStorage.setItem("proyectos", JSON.stringify(this.proyectos));
+                },
+                limpiarData() {
+                    this.proyectos = [];
+                    localStorage.clear();
+                },
             },
-        },
-    };
+            computed: {
+                numeroProyectos() {
+                    return this.proyectos.legth;
+                },
+                porcentaje() {
+                    let completados = 0;
+                    this.proyectos.map(proyecto => {
+                        if (proyecto.completado)
+                            completados++;
+                    });
+                    return (completados * 100) / this.numeroProyectos || 0;
+                },
+            },
+            components: { ProgressBar, TotalProyectos},
+            mounted() {
+                this.proyectos = JSON.parse(localStorage.getItem("proyectos")) || [];
+            },
+    
+        };
 </script>
